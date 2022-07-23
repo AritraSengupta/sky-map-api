@@ -1,33 +1,35 @@
 const axios = require('axios');
 const sharp = require("sharp");
-const fs = require('fs');
+const url = require('url');
 var exec = require('child_process').exec;
 
-async function getMetadata(filePath) {
+async function getMetadata(filePath, urlParams) {
   try {
     const width = 1200;
     const height = width * 1.414;
     const text = "The night sky";
 
     const svgBackground = `
-    <svg>
+    <svg width="${width}" height="${height}">
       <style>
       .title { fill: #ffffff; font-size: 70px; font-weight: bold;}
       </style>
       <g>
         <rect x="0" y="0" width="${width}" height="${height}" fill="black"></rect>
-        <text x="0" y="${height - 100}" class="title">The Night Sky</text>
+        <text x="50%" y="${height - 100}" class="title" dominant-baseline="middle" text-anchor="middle">The Night Sky</text>
       </g>
     </svg>
     `;
+
+    console.log(urlParams);
 
     const svgBackgroundBuffer = Buffer.from(svgBackground);
     const imageBackground = await sharp(svgBackgroundBuffer)
       .composite([
         {
           input: filePath,
-          top: 0,
-          left: 0,
+          top: 100,
+          left: 88,
         },
       ])
       .tint({ r: 255, g: 240, b: 16 })
@@ -48,17 +50,10 @@ const getSkyMap = async (req, res, next) => {
     lon,
     ew,
   } = req.query;
-  // const date = '2022-07-04+12%3A26%3A10';
-  // const jd = '2459765.01817';
-  // const lat = '5%B012%27';
-  // const lon = '4%B030%27';
   const baseUrl = 'https://www.fourmilab.ch';
-
-  // get some posts
-  let result = await axios.get(`${
+  const finalUrl = `${
     baseUrl
-  }/cgi-bin/Yoursky?date=1
-  &utc=${
+  }/cgi-bin/Yoursky?utc=${
     date
   }&jd=${
     jd
@@ -79,7 +74,10 @@ const getSkyMap = async (req, res, next) => {
   &imgsize=1024
   &fontscale=1.0
   &scheme=2
-  &elements=`);
+  &elements=`;
+
+  // get some posts
+  let result = await axios.get(finalUrl);
   const extract = result.data
   const match = extract.match(/"\/cgi-bin\/Yoursky\?di=.*" usemap/);
   const removeFirst = match[0].replace('\"', '');
@@ -87,7 +85,7 @@ const getSkyMap = async (req, res, next) => {
   exec(`curl ${baseUrl}${final} --output test.gif`, async (error, stdout, stderr) => {
     console.log('stdout: ' + stdout);
     console.log('stderr: ' + stderr);
-    await getMetadata('test.gif');
+    await getMetadata('test.gif', url.parse(finalUrl, true));
     if (error !== null) {
       console.log('exec error: ' + error);
     }
