@@ -1,3 +1,4 @@
+const PORT = PROCESS.env.PORT || 3001;
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
@@ -32,6 +33,6 @@ app.get('/', (req, res) => {
 app.get('/skymap', getSkyMap);
 
 // starting the server
-app.listen(3001, () => {
-  console.log('listening on port 3001');
+app.listen(PORT, () => {
+  console.log('listening on port ' + PORT);
 });
