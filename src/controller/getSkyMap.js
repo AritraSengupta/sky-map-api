@@ -2,6 +2,7 @@ const axios = require('axios');
 const sharp = require("sharp");
 const url = require('url');
 var exec = require('child_process').exec;
+var path = require('path');
 
 async function getMetadata(filePath, urlParams) {
   try {
@@ -89,7 +90,7 @@ const getSkyMap = async (req, res, next) => {
     if (error !== null) {
       console.log('exec error: ' + error);
     }
-    return res.sendFile('/home/asengupta/Documents/sky-map-api/grayscale.png');
+    return res.sendFile(path.resolve(process.cwd()) + '/grayscale.png');
   });
   
 };
